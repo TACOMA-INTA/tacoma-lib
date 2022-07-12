@@ -111,7 +111,6 @@ ipython_config.py
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
 *.ipynb
-*.txt
 *.pkl
 *.npz
 otros
