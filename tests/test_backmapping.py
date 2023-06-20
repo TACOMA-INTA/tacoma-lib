@@ -1,5 +1,5 @@
 import numpy as np
-from tacoma.interpolator import TaylorKNNBackmap
+from tacoma.interpolator import TaylorKNNBackmap, KNeighborsBackmap
 from sklearn.manifold import Isomap
 
 
@@ -20,4 +20,8 @@ def test_taylorknn():
     y_pred = model.predict(X_test)
 
 
+def test_knnbacmap():
+    model = KNeighborsBackmap()
+    model.fit(X_train, y_train_iso)
+    y_pred = model.predict(X_test)
 

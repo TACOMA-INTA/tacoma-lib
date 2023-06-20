@@ -50,14 +50,26 @@ class KNeighborsBackmap:
     """
     def __init__(self,n_neighbors = 5,**kwargs):
         self.map_model = KNeighborsRegressor(n_neighbors = n_neighbors,**kwargs)
-    def fit(self,y_train,y_iso_train,y_iso_pred):
+    def fit(self,y_train,y_train_iso):
         """
-        Fit
+        Fit method
         """
-        self.map_model.fit(y_iso_train,y_train)
+        self.y_train = y_train
+        self.y_iso_train = y_train_iso
+        self.map_model.fit(self.y_iso_train,y_train)
+
+    def fit_transform(self,y_train,y_train_iso,y_iso_pred):
+        """
+        Fit Transform method
+        """
+        self.fit(y_train,y_train_iso)
+        self.y_pred = self.predict(y_iso_pred)
+        return self.y_pred
+
+
+    def predict(self,y_iso_pred):
         self.y_pred = self.map_model.predict(y_iso_pred)
 
-    def predict(self):
         return self.y_pred
 
 
