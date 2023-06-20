@@ -1,14 +1,6 @@
 import numpy as np
-import pandas as pd
-import pickle
-from pathlib import Path
-import pickle
 from sklearn.manifold import Isomap 
-from sklearn.neighbors import kneighbors_graph
-from sklearn.neighbors import NearestNeighbors
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn import metrics
-
+import joblib
 class PODRegressor:
     """POD Regression ROM. is a numerical method that enables a reduction in the complexity of computer intensive simulations such as computational fluid dynamics.
     It is based on the usage of Singular Value Descomposition to obtain the spatial and temporal modes 
@@ -146,8 +138,8 @@ class IsomapRegressor:
         self.y_iso_train = self.embedding.fit_transform(y_train)
         self.regression_model.fit(X_train,self.y_iso_train)
         self.y_iso_pred = self.regression_model.predict(X_test)
-        self.backmapping_model.fit(y_train,self.y_iso_train,self.y_iso_pred)               
-        self.y_pred = self.backmapping_model.predict()
+        self.backmapping_model.fit(y_train,self.y_iso_train)
+        self.y_pred = self.backmapping_model.predict(self.y_iso_pred) 
 
     def get_params(self):
         """
@@ -155,4 +147,5 @@ class IsomapRegressor:
         The first element is the regression model parameters. The second model is the Isomap embedding parameters
         """
         return self.regression_model.get_params(), self.embedding.get_params()
+    
     

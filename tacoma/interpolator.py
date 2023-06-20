@@ -50,13 +50,78 @@ class KNeighborsBackmap:
     """
     def __init__(self,n_neighbors = 5,**kwargs):
         self.map_model = KNeighborsRegressor(n_neighbors = n_neighbors,**kwargs)
-    def fit(self,y_train,y_iso_train,y_iso_pred):
+    def fit(self,y_train,y_train_iso):
         """
-        Fit
+        Fit method
         """
-        self.map_model.fit(y_iso_train,y_train)
-        self.y_pred = self.map_model.predict(y_iso_pred)
+        self.y_train = y_train
+        self.y_iso_train = y_train_iso
+        self.map_model.fit(self.y_iso_train,y_train)
 
-    def predict(self):
+    def fit_transform(self,y_train,y_train_iso,y_iso_pred):
+        """
+        Fit Transform method
+        """
+        self.fit(y_train,y_train_iso)
+        self.y_pred = self.predict(y_iso_pred)
         return self.y_pred
 
+
+    def predict(self,y_iso_pred):
+        self.y_pred = self.map_model.predict(y_iso_pred)
+
+        return self.y_pred
+
+
+
+class TaylorKNNBackmap:
+    """
+    Backmapping method
+
+    TO-DO:
+        - Add docstrings
+        - Add citation
+
+    """
+    def __init__(self,n_neighbors = 5,**kwargs):
+        self.map_model = NearestNeighbors(n_neighbors = n_neighbors,**kwargs)
+
+    def fit(self,y_train,y_train_iso):
+        """
+        Fit method
+        """
+        self.y_train = y_train
+        self.y_iso_train = y_train_iso
+        self.map_model.fit(self.y_iso_train)
+
+    def predict(self,y_iso_pred):
+        """
+        Transform method
+        """
+        self.y_pred = np.zeros([y_iso_pred.shape[0],self.y_train.shape[1]])
+        for i in range(y_iso_pred.shape[0]):
+            idxk = self.map_model.kneighbors(y_iso_pred[i:i+1,:],return_distance = False)
+            self.y_pred[i,:] = self.__taylor_expansion__(X = self.y_train,y = self.y_iso_train,idx = idxk,y_pred = y_iso_pred[i:i+1,:])
+        return self.y_pred
+    def fit_transform(self,y_train,y_train_iso,y_iso_pred):
+        """
+        Fit Transform method
+        """
+        self.fit(y_train,y_train_iso)
+        self.y_pred = self.predict(y_iso_pred)
+        return self.y_pred
+
+    @staticmethod
+    def __taylor_expansion__(X,y,y_pred,idx):
+        """
+        Back-mapping with a Taylor norder approximation of the k neighbours.
+        """
+        xx = X[idx[0,1:],:] - X[idx[0,0],:]
+        yy = y[idx[0,1:],:] - y[idx[0,0],:]
+        grad = np.linalg.multi_dot(
+        [np.linalg.inv(np.dot(yy.T,yy))
+        ,yy.T
+        ,xx])
+        # grad = np.dot(np.linalg.inv(np.dot(yy.T,yy)),np.dot(yy.T,xx))
+        xpred = np.dot((y_pred-y[idx[0,0],:]),grad) + X[idx[0,0],:]
+        return xpred
